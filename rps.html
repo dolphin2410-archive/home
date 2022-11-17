@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        html, body, .container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .section {
+            height: 50%;
+            width: 100%;
+        }
+
+        #input > .uinp {
+            padding: 50px;
+            font-size: 5rem;
+            cursor: pointer;
+        }
+
+        .uinp:hover {
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        #input, .cin {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .comp {
+            border: 1px solid black;
+            padding: 50px;
+            font-size: 5rem;
+            cursor: pointer;
+        }
+
+        .selected {
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="section cin">
+            <span class="comp" onclick="startGame()">start</span>
+        </div>
+        <div id="input" class="section">
+            <span class="rock uinp" onclick="toggleSelect(this)">✊</span>
+            <span class="paper uinp" onclick="toggleSelect(this)">✋</span>
+            <span class="scissor uinp" onclick="toggleSelect(this)">✌️</span>
+        </div>
+    </div>
+
+    <script>
+        let name
+        if (localStorage.getItem("name") == null) {
+            name = prompt("what'your name")
+            if (name == "") {
+                window.location.reload()
+            } else {
+                localStorage.setItem("name", name)
+            }
+        } else {
+            name = localStorage.getItem("name")
+        }
+
+
+        let selected = null
+        let computer = document.querySelector(".comp")
+        const rpsArr = ["✊", "✋", "✌️"]
+        let data = { "✊": 0, "✋": 1, "✌️": 2 }
+        let started = false
+        let counter = 0
+
+        const toggleSelect = (target) => {
+            target.classList.toggle("selected")
+            if (selected != null) {
+                selected.classList.toggle("selected")
+            }
+            selected = target
+        }
+
+        const startGame = () => {
+            if (started) {
+                return
+            }
+            started = true
+            computer.innerHTML = 5
+            let intv = setInterval(() => {
+                counter += 1
+                computer.innerHTML = 5 - counter
+                if (counter == 5) {
+                    clearInterval(intv)
+                    counter = 0
+                    let random = rpsArr[Math.floor(Math.random() * rpsArr.length)]
+                    computer.innerHTML = random
+                    setTimeout(() => {
+                    if (selected == null || selected.innerHTML == random) {
+                        computer.innerHTML = "DRAW"
+                    } else {
+                        if (compare(random, selected.innerHTML) == 1) {
+                            // player win
+                            computer.innerHTML = "WIN"
+                        } else {
+                            // computer win
+                            computer.innerHTML = "LOSE"
+                        }
+                    }
+                    }, 2000)
+
+                    if (selected != null) {
+                        setTimeout(() => {
+                        fetch("https://whimsical-pinto-bugle.glitch.me/collect", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({data: selected.innerHTML, name: name})
+                        })
+                        computer.innerHTML = "start"
+                    }, 3000)
+                    }
+                    started = false
+                }
+            }, 1000)
+        }
+
+        /// b win -> 0
+        /// a win -> 1
+        const compare = (a, b) => {
+            if (Math.abs(data[a] - data[b]) == 2) {
+                if (data[a] > data[b]) return 1
+                if (data[a] < data[b]) return 0
+            }
+            if (data[a] < data[b]) return 1
+            if (data[a] > data[b]) return 0
+        }
+    </script>
+</body>
+</html>
